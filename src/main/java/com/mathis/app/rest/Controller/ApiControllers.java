@@ -3,11 +3,14 @@ package com.mathis.app.rest.Controller;
 import com.mathis.app.rest.Models.User;
 import com.mathis.app.rest.Repo.UserRepo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
+@CrossOrigin(origins = "http://localhost:4200")
 public class ApiControllers {
 
     @Autowired
@@ -28,11 +31,10 @@ public class ApiControllers {
     }
 
     @PostMapping(value = "/save")
-    public String saveUser(@RequestBody User user) {
-        userRepo.save(user);
-        return "Saved...";
+    public ResponseEntity<User> saveUser(@RequestBody User user) {
+        User savedUser = userRepo.save(user);
+        return ResponseEntity.status(HttpStatus.CREATED).body(savedUser);
     }
-
     @PutMapping(value = "/update/{id}")
     public String updateUser(@PathVariable long id, @RequestBody User user){
         User updatedUser = userRepo.findById(id).get();
@@ -45,9 +47,13 @@ public class ApiControllers {
     }
 
     @DeleteMapping(value = "/delete/{id}")
-    public String deleteUser(@PathVariable long id){
-        User deleteUser = userRepo.findById(id).get();
-        userRepo.delete(deleteUser);
-        return "Delete user with the id: " + id;
+    public ResponseEntity<String> deleteUser(@PathVariable long id){
+        User deleteUser = userRepo.findById(id).orElse(null);
+        if (deleteUser != null) {
+            userRepo.delete(deleteUser);
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
